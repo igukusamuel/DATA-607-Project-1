@@ -187,54 +187,55 @@ summary {
 
 <div id="project-1" class="section level4">
 <h4>Project 1</h4>
-<p>In this project, youre given a text file with chess tournament results where the information has some structure. Your job is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database) with the following information for all of the players: Players Name, Players State, Total Number of Points, Players Pre-Rating, and Average Pre Chess Rating of Opponents For the first player, the information would be: Gary Hua, ON, 6.0, 1794, 1605 1605 was calculated by using the pre-tournament opponents ratings of 1436, 1563, 1600, 1610, 1649, 1663, 1716, and dividing by the total number of games played. If you have questions about the meaning of the data or the results, please post them on the discussion forum. Data science, like chess, is a game of back and forth The chess rating system (invented by a Minnesota statistician named Arpad Elo) has been used in many other contexts, including assessing relative strength of employment candidates by human resource departments. You may substitute another text file (or set of text files, or data scraped from web pages) of similar or greater complexity, and create your own assignment and solution. You may work in a small team. All of your code should be in an R markdown file (and published to rpubs.com); with your data accessible for the person running the script.</p>
+<p>In this project, youre given a text file with chess tournament results where the information has some structure. Your job is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database) with the following information for all of the players: Players Name, Players State, Total Number of Points, Players Pre-Rating, and Average Pre Chess Rating of Opponents For the first player, the information would be: Gary Hua, ON, 6.0, 1794, 1605 1605 was calculated by using the pre-tournament opponents ratings of 1436, 1563, 1600, 1610, 1649, 1663, 1716, and dividing by the total number of games played. If you have questions about the meaning of the data or the results, please post them on the discussion forum. Data science, like chess, is a game of back and forth The chess rating system (invented by a Minnesota statistician named Arpad Elo) has been used in many other contexts, including assessing relative strength of employment candidates by human resource departments. You may substitute another text file (or set of text files, or data scraped from web pages) of similar or greater complexity, and create your own assignment and solution. You may work in a small team. All of your code should be in an R markdown file (and published to rpubs.com); with your data accessible for the person running the script.</p>
 </div>
 <div id="step-1" class="section level1">
 <h1>Step 1</h1>
-<p>I downloaded the chess .txt file from the class link provided and uploaded it into my DATA 607 Project 1 repository on github. I then uploaded the file into R from Github and performed the below data manipulations using regular expressions. Follow this link to view the original file <a href="https://raw.githubusercontent.com/igukusamuel/DATA-607-Project-1/master/tournamentinfo.txt" class="uri">https://raw.githubusercontent.com/igukusamuel/DATA-607-Project-1/master/tournamentinfo.txt</a></p>
+<p>Download the chess .txt file from the class link provided (or from any other source per the instruction above) and uploaded it into a repository on github (in my case <a href="https://raw.githubusercontent.com/igukusamuel/DATA-607-Project-1/master/tournamentinfo.txt" class="uri">https://raw.githubusercontent.com/igukusamuel/DATA-607-Project-1/master/tournamentinfo.txt</a>. Use RCurl to load the txt data into R from Github or other link of your choosing and perform the below data manipulations using regular expressions.</p>
 <pre class="r"><code>library(RCurl)</code></pre>
 <pre><code>## Warning: package 'RCurl' was built under R version 3.5.3</code></pre>
 <pre><code>## Loading required package: bitops</code></pre>
-<pre class="r"><code>chess &lt;- getURL(&quot;https://raw.githubusercontent.com/nabilahossain/Class-IS607/master/Project%201/tournamentinfo.txt&quot;)
+<pre class="r"><code>chess_T &lt;- getURL(&quot;https://raw.githubusercontent.com/nabilahossain/Class-IS607/master/Project%201/tournamentinfo.txt&quot;)
 #chess</code></pre>
 </div>
 <div id="step-2" class="section level1">
 <h1>Step 2</h1>
-<p>I used regular expressions to pull the (a) player’s name and (b) the state.</p>
+<p>Use regular expressions to pull the (a) player’s name and (b) the state. Load the stingr package and use the str_extract_all and the str_replace_all functions to extract and to format/clean the data from the .txt file</p>
 <pre class="r"><code>library(stringr)</code></pre>
 <pre><code>## Warning: package 'stringr' was built under R version 3.5.3</code></pre>
-<pre class="r"><code>name &lt;- unlist(str_extract_all(chess, &quot;\\| [[:upper:]- ]{4,} \\|&quot;))
+<pre class="r"><code>name &lt;- unlist(str_extract_all(chess_T, &quot;\\| [[:upper:]- ]{4,} \\|&quot;))
 name &lt;- str_replace_all(name, pattern = &quot;(\\| )|([[:space:]]{1,}\\|)&quot;, replacement = &quot;&quot;)
 head(name[25:30])</code></pre>
 <pre><code>## [1] &quot;LOREN SCHWIEBERT&quot;           &quot;MAX ZHU&quot;                   
 ## [3] &quot;GAURAV GIDWANI&quot;             &quot;SOFIA ADINA STANESCU-BELLU&quot;
 ## [5] &quot;CHIEDOZIE OKORIE&quot;           &quot;GEORGE AVERY JONES&quot;</code></pre>
-<pre class="r"><code>state &lt;- unlist(str_extract_all(chess, &quot;\\|[[:space:]]{1,}[[A-Z]]{2} \\|&quot;))
+<pre class="r"><code>state &lt;- unlist(str_extract_all(chess_T, &quot;\\|[[:space:]]{1,}[[A-Z]]{2} \\|&quot;))
 state &lt;- str_replace_all(state, pattern = &quot;(\\|[[:space:]]{1,})|([[:space:]]{1,}\\|)&quot;, replacement = &quot;&quot;)
 head(state, 10)</code></pre>
 <pre><code>##  [1] &quot;ON&quot; &quot;MI&quot; &quot;MI&quot; &quot;MI&quot; &quot;MI&quot; &quot;OH&quot; &quot;MI&quot; &quot;MI&quot; &quot;ON&quot; &quot;MI&quot;</code></pre>
 </div>
 <div id="step-3" class="section level1">
 <h1>Step 3</h1>
-<p>used regular expressions to extract (a) player’s points and (b) pre-rating.</p>
-<pre class="r"><code>total_points &lt;- unlist(str_extract_all(chess, &quot;\\|[[:digit:].[:digit:]]{3}[[:space:]]{1,}\\|&quot;))
+<p>Use regular expressions and the stingr functions mentioned in step 2 to extract (a) player’s points and (b) pre-rating.</p>
+<pre class="r"><code>total_points &lt;- unlist(str_extract_all(chess_T, &quot;\\|[[:digit:].[:digit:]]{3}[[:space:]]{1,}\\|&quot;))
 total_points &lt;- str_replace_all(total_points, pattern = &quot;(\\|)|([[:space:]]{1,}\\|)&quot;, replacement = &quot;&quot;)
 head(total_points, 10)</code></pre>
 <pre><code>##  [1] &quot;6.0&quot; &quot;6.0&quot; &quot;6.0&quot; &quot;5.5&quot; &quot;5.5&quot; &quot;5.0&quot; &quot;5.0&quot; &quot;5.0&quot; &quot;5.0&quot; &quot;5.0&quot;</code></pre>
-<pre class="r"><code>pre_rating &lt;- unlist(str_extract_all(chess, &quot;[:] [[:alnum:] ]{2,9}\\-\\&gt;&quot;))
+<pre class="r"><code>pre_rating &lt;- unlist(str_extract_all(chess_T, &quot;[:] [[:alnum:] ]{2,9}\\-\\&gt;&quot;))
 pre_rating &lt;- str_replace_all(pre_rating, pattern = &quot;(\\: )|(\\s{1,}\\-\\&gt;)|([O-Q]\\d{1,2})|(\\-\\&gt;)&quot;, replacement = &quot;&quot;)
 pre_rating &lt;- as.numeric(pre_rating)
-head(pre_rating, 10)</code></pre>
-<pre><code>##  [1] 1794 1553 1384 1716 1655 1686 1649 1641 1411 1365</code></pre>
+head(pre_rating, 15)</code></pre>
+<pre><code>##  [1] 1794 1553 1384 1716 1655 1686 1649 1641 1411 1365 1712 1663 1666 1610
+## [15] 1220</code></pre>
 </div>
 <div id="step-4" class="section level1">
 <h1>Step 4</h1>
-<p>We then create a table with (a) player’s number, (b) name, (c) state, (d) total points and (e) pre-rating as the headers</p>
-<pre class="r"><code>player_num &lt;- unlist(str_extract_all(chess, &quot;\\d{1,2}\\s\\|&quot;))
+<p>Extract, using same functions as above, each players number, needed later to join/combine tables and then create a table with (a) player’s number, (b) name, (c) state, (d) total points and (e) pre-rating as the headers</p>
+<pre class="r"><code>player_num &lt;- unlist(str_extract_all(chess_T, &quot;\\d{1,2}\\s\\|&quot;))
 player_num &lt;- str_replace_all(player_num, pattern = &quot;(\\s\\|)&quot;, replacement = &quot;&quot;)
 player_num &lt;- as.numeric(player_num)
-table1 &lt;- data.frame(player_num = player_num, name = name, state = state, total_pts = total_points, pre_rating = pre_rating)
-head(table1)</code></pre>
+table_1 &lt;- data.frame(player_num = player_num, name = name, state = state, total_pts = total_points, pre_rating = pre_rating)
+head(table_1)</code></pre>
 <pre><code>##   player_num                name state total_pts pre_rating
 ## 1          1            GARY HUA    ON       6.0       1794
 ## 2          2     DAKSHESH DARURI    MI       6.0       1553
@@ -245,10 +246,10 @@ head(table1)</code></pre>
 </div>
 <div id="step-5" class="section level1">
 <h1>Step 5</h1>
-<p>Extracting the first row from the txt file and creating a table named rounds</p>
-<pre class="r"><code>r1 &lt;- unlist(str_extract_all(chess, &quot;\\d{1,2}\\s\\|(.+?)\\|[[:upper:]]{1}\\s{1,4}[[:digit:]]{0,3}\\|\n&quot;))
-r1 &lt;- str_replace_all(r1, pattern = &quot;(\\|[[:upper:]]{1} )&quot;, replacement = &quot;\\|&quot;)
-head(r1, 10)</code></pre>
+<p>Extracting the first row from the txt file and creating a table named rounds with 10 columns. Here only extract the information found in the first line of each player and save it in the table of rounds.</p>
+<pre class="r"><code>r_1 &lt;- unlist(str_extract_all(chess_T, &quot;\\d{1,2}\\s\\|(.+?)\\|[[:upper:]]{1}\\s{1,4}[[:digit:]]{0,3}\\|\n&quot;))
+r_1 &lt;- str_replace_all(r_1, pattern = &quot;(\\|[[:upper:]]{1} )&quot;, replacement = &quot;\\|&quot;)
+head(r_1, 10)</code></pre>
 <pre><code>##  [1] &quot;1 | GARY HUA                        |6.0  | 39| 21| 18| 14|  7| 12|  4|\n&quot; 
 ##  [2] &quot;2 | DAKSHESH DARURI                 |6.0  | 63| 58|  4| 17| 16| 20|  7|\n&quot; 
 ##  [3] &quot;3 | ADITYA BAJAJ                    |6.0  |  8| 61| 25| 21| 11| 13| 12|\n&quot; 
@@ -259,8 +260,8 @@ head(r1, 10)</code></pre>
 ##  [8] &quot;8 | EZEKIEL HOUGHTON                |5.0  |  3| 32| 14|  9| 47| 28| 19|\n&quot; 
 ##  [9] &quot;9 | STEFANO LEE                     |5.0  | 25| 18| 59|  8| 26|  7| 20|\n&quot; 
 ## [10] &quot;10 | ANVIT RAO                       |5.0  | 16| 19| 55| 31|  6| 25| 18|\n&quot;</code></pre>
-<pre class="r"><code>r1 &lt;- str_replace_all(r1, pattern = &quot;([[:space:]]{2})|(\\|\n)&quot;, replacement = &quot;&quot;)
-rounds &lt;- data.frame(str_split_fixed(r1, &quot;\\|&quot;, 10))
+<pre class="r"><code>r_1 &lt;- str_replace_all(r_1, pattern = &quot;([[:space:]]{2})|(\\|\n)&quot;, replacement = &quot;&quot;)
+rounds &lt;- data.frame(str_split_fixed(r_1, &quot;\\|&quot;, 10))
 names(rounds) &lt;- c(&quot;num&quot;, &quot;name&quot;, &quot;total_pts&quot;, &quot;round1&quot;, &quot;round2&quot;, &quot;round3&quot;, &quot;round4&quot;, &quot;round5&quot;, &quot;round6&quot;, &quot;round7&quot;)
 tail(rounds, 4)</code></pre>
 <pre><code>##    num                  name total_pts round1 round2 round3 round4 round5
@@ -276,15 +277,15 @@ tail(rounds, 4)</code></pre>
 </div>
 <div id="step-6" class="section level1">
 <h1>Step 6</h1>
-<p>combine all the seven rounds of information extracted in table rounds in step 5 and create a second table named table2.</p>
+<p>Install package reshape2 to combine players opponents information from the 7 columns into 1 and use the subset function to eliminate missing information. combine all the seven rounds of information extracted in table rounds in step 5 and create a second table named table2.</p>
 <pre class="r"><code>library(reshape2)</code></pre>
 <pre><code>## Warning: package 'reshape2' was built under R version 3.5.3</code></pre>
-<pre class="r"><code>r3 &lt;- data.frame(rounds[c(1, 4:10)])
-r3$num &lt;- str_replace_all(r3$num, pattern = &quot;\\s{1,}(\\d{1,2})&quot;, replacement = &quot;\\1&quot;)
-r4 &lt;- melt(r3,id.vars=&quot;num&quot;, variable.name = &quot;rounds&quot;, value.name = &quot;opponent_number&quot; )</code></pre>
+<pre class="r"><code>r_3 &lt;- data.frame(rounds[c(1, 4:10)])
+r_3$num &lt;- str_replace_all(r_3$num, pattern = &quot;\\s{1,}(\\d{1,2})&quot;, replacement = &quot;\\1&quot;)
+r_4 &lt;- melt(r_3,id.vars=&quot;num&quot;, variable.name = &quot;rounds&quot;, value.name = &quot;opponent_number&quot; )</code></pre>
 <pre><code>## Warning: attributes are not identical across measure variables; they will
 ## be dropped</code></pre>
-<pre class="r"><code>tail(r4)</code></pre>
+<pre class="r"><code>tail(r_4)</code></pre>
 <pre><code>##     num rounds opponent_number
 ## 443 59  round7              44
 ## 444 60  round7                
@@ -292,9 +293,9 @@ r4 &lt;- melt(r3,id.vars=&quot;num&quot;, variable.name = &quot;rounds&quot;, va
 ## 446 62  round7                
 ## 447 63  round7                
 ## 448 64  round7              54</code></pre>
-<pre class="r"><code>table2 &lt;- subset(r4, opponent_number != &quot; &quot;)
-table2$num &lt;- as.numeric(table2$num)
-tail(table2)</code></pre>
+<pre class="r"><code>table_2 &lt;- subset(r_4, opponent_number != &quot; &quot;)
+table_2$num &lt;- as.numeric(table_2$num)
+tail(table_2)</code></pre>
 <pre><code>##     num rounds opponent_number
 ## 439  55 round7              43
 ## 440  56 round7              42
@@ -305,7 +306,7 @@ tail(table2)</code></pre>
 </div>
 <div id="step-7" class="section level1">
 <h1>Step 7</h1>
-<p>combine table 1 and table 2 to get the opponents pre-ratings and name it table 3</p>
+<p>install package sqldf to join table 1 and table 2 to get the opponents pre-ratings and name set this data into table 3.</p>
 <pre class="r"><code>library(sqldf)</code></pre>
 <pre><code>## Warning: package 'sqldf' was built under R version 3.5.3</code></pre>
 <pre><code>## Loading required package: gsubfn</code></pre>
@@ -314,11 +315,11 @@ tail(table2)</code></pre>
 <pre><code>## Warning: package 'proto' was built under R version 3.5.3</code></pre>
 <pre><code>## Loading required package: RSQLite</code></pre>
 <pre><code>## Warning: package 'RSQLite' was built under R version 3.5.3</code></pre>
-<pre class="r"><code>table3 &lt;- sqldf(&quot;select t2.num as 'player_num', t1.name as 'opponent_name', t2.rounds, t2.opponent_number, t1.pre_rating as 'opponent_pre_rating'   from table2 t2
-        left join table1 t1
-         on t2.opponent_number =  t1.player_num
-        order by t2.num asc&quot;)
-head(table3)</code></pre>
+<pre class="r"><code>table_3 &lt;- sqldf(&quot;select t_2.num as 'player_num', t_1.name as 'opponent_name', t_2.rounds, t_2.opponent_number, t_1.pre_rating as 'opponent_pre_rating'   from table_2 t_2
+        left join table_1 t_1
+         on t_2.opponent_number =  t_1.player_num
+        order by t_2.num asc&quot;)
+head(table_3)</code></pre>
 <pre><code>##   player_num     opponent_name rounds opponent_number opponent_pre_rating
 ## 1          1     JOEL R HENDON round1              39                1436
 ## 2          1     DINH DANG BUI round2              21                1563
@@ -329,10 +330,10 @@ head(table3)</code></pre>
 </div>
 <div id="step-8" class="section level1">
 <h1>Step 8</h1>
-<p>Aggregate the opponents pre-ratings into table 4</p>
+<p>use stats package and the aggregate function to find each players average pre-rating and set it as table 4. Use the subset fuction to acomplish this.</p>
 <pre class="r"><code>library(stats)
-table4 &lt;- aggregate(opponent_pre_rating ~ player_num, data = table3, FUN = 'mean')
-head(table4)</code></pre>
+table_4 &lt;- aggregate(opponent_pre_rating ~ player_num, data = table_3, FUN = 'mean')
+head(table_4)</code></pre>
 <pre><code>##   player_num opponent_pre_rating
 ## 1          1            1605.286
 ## 2          2            1469.286
@@ -343,78 +344,30 @@ head(table4)</code></pre>
 </div>
 <div id="step-9" class="section level1">
 <h1>Step 9</h1>
-<p>Join table 1 and table 4 to obtain a table of the required information and in the reqired format.</p>
-<pre class="r"><code>Chess_Tournament &lt;- sqldf(&quot;select t1.name as 'Player_Name', t1.state as 'Player_State', t1.total_pts as 'Total_Points', t1.pre_rating as 'Player_Pre-Rating', t4.opponent_pre_rating as 'Opponents_Average_Pre_Rating'
-      from table1 t1 left join table4 t4
-         on t4.player_num =  t1.player_num&quot;)
+<p>Using the sqldf package join table 1 and table 4 to obtain a table of the required information and in the reqired format. use the format fuction to round off the decimals to your units of choice.</p>
+<pre class="r"><code>Chess_Tournament &lt;- sqldf(&quot;select t_1.name as 'Player_Name', t_1.state as 'Player_State', t_1.total_pts as 'Total_Points', t_1.pre_rating as 'Player_Pre-Rating', t_4.opponent_pre_rating as 'Opponents_Average_Pre_Rating'
+      from table_1 t_1 left join table_4 t_4
+         on t_4.player_num =  t_1.player_num&quot;)
 Chess_Tournament$Opponents_Average_Pre_Rating &lt;- format(round(Chess_Tournament$Opponents_Average_Pre_Rating, 1), nsmall = 1)
-head(Chess_Tournament, 30)</code></pre>
-<pre><code>##                   Player_Name Player_State Total_Points Player_Pre-Rating
-## 1                    GARY HUA           ON          6.0              1794
-## 2             DAKSHESH DARURI           MI          6.0              1553
-## 3                ADITYA BAJAJ           MI          6.0              1384
-## 4         PATRICK H SCHILLING           MI          5.5              1716
-## 5                  HANSHI ZUO           MI          5.5              1655
-## 6                 HANSEN SONG           OH          5.0              1686
-## 7           GARY DEE SWATHELL           MI          5.0              1649
-## 8            EZEKIEL HOUGHTON           MI          5.0              1641
-## 9                 STEFANO LEE           ON          5.0              1411
-## 10                  ANVIT RAO           MI          5.0              1365
-## 11   CAMERON WILLIAM MC LEMAN           MI          4.5              1712
-## 12             KENNETH J TACK           MI          4.5              1663
-## 13          TORRANCE HENRY JR           MI          4.5              1666
-## 14               BRADLEY SHAW           MI          4.5              1610
-## 15     ZACHARY JAMES HOUGHTON           MI          4.5              1220
-## 16               MIKE NIKITIN           MI          4.0              1604
-## 17         RONALD GRZEGORCZYK           MI          4.0              1629
-## 18              DAVID SUNDEEN           MI          4.0              1600
-## 19               DIPANKAR ROY           MI          4.0              1564
-## 20                JASON ZHENG           MI          4.0              1595
-## 21              DINH DANG BUI           ON          4.0              1563
-## 22           EUGENE L MCCLURE           MI          4.0              1555
-## 23                   ALAN BUI           ON          4.0              1363
-## 24          MICHAEL R ALDRICH           MI          4.0              1229
-## 25           LOREN SCHWIEBERT           MI          3.5              1745
-## 26                    MAX ZHU           ON          3.5              1579
-## 27             GAURAV GIDWANI           MI          3.5              1552
-## 28 SOFIA ADINA STANESCU-BELLU           MI          3.5              1507
-## 29           CHIEDOZIE OKORIE           MI          3.5              1602
-## 30         GEORGE AVERY JONES           ON          3.5              1522
-##    Opponents_Average_Pre_Rating
-## 1                        1605.3
-## 2                        1469.3
-## 3                        1563.6
-## 4                        1573.6
-## 5                        1500.9
-## 6                        1518.7
-## 7                        1372.1
-## 8                        1468.4
-## 9                        1523.1
-## 10                       1554.1
-## 11                       1467.6
-## 12                       1506.2
-## 13                       1497.9
-## 14                       1515.0
-## 15                       1483.9
-## 16                       1385.8
-## 17                       1498.6
-## 18                       1480.0
-## 19                       1426.3
-## 20                       1410.9
-## 21                       1470.4
-## 22                       1300.3
-## 23                       1213.9
-## 24                       1357.0
-## 25                       1363.3
-## 26                       1506.9
-## 27                       1221.7
-## 28                       1522.1
-## 29                       1313.5
-## 30                       1144.1</code></pre>
+head(Chess_Tournament)</code></pre>
+<pre><code>##           Player_Name Player_State Total_Points Player_Pre-Rating
+## 1            GARY HUA           ON          6.0              1794
+## 2     DAKSHESH DARURI           MI          6.0              1553
+## 3        ADITYA BAJAJ           MI          6.0              1384
+## 4 PATRICK H SCHILLING           MI          5.5              1716
+## 5          HANSHI ZUO           MI          5.5              1655
+## 6         HANSEN SONG           OH          5.0              1686
+##   Opponents_Average_Pre_Rating
+## 1                       1605.3
+## 2                       1469.3
+## 3                       1563.6
+## 4                       1573.6
+## 5                       1500.9
+## 6                       1518.7</code></pre>
 </div>
 <div id="step-10" class="section level1">
 <h1>Step 10</h1>
-<p>Finally save a .csv file into local drive or into github repository.</p>
+<p>Finally save a .csv file into local drive and upload into github repository. See my uploaded file under <a href="https://github.com/igukusamuel/DATA-607-Project-1/blob/master/DATA_607_Project_1.csv" class="uri">https://github.com/igukusamuel/DATA-607-Project-1/blob/master/DATA_607_Project_1.csv</a></p>
 <pre class="r"><code>write.csv(Chess_Tournament, file = &quot;C:/Users/iguku/Google Drive/R and SQL/DATA 607 Project 1/DATA_607_Project_1.csv&quot;)</code></pre>
 </div>
 

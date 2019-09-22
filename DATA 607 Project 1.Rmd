@@ -2,7 +2,9 @@
 title: "DATA 607 Project 1"
 author: "Samuel I Kigamba"
 date: "September 22, 2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,16 +13,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ####Project 1
-In this project, you’re given a text file with chess tournament results where the information has some structure. Your
+In this project, youre given a text file with chess tournament results where the information has some structure. Your
 job is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database)
 with the following information for all of the players:
-Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre Chess Rating of Opponents
+Players Name, Players State, Total Number of Points, Players Pre-Rating, and Average Pre Chess Rating of Opponents
 For the first player, the information would be:
 Gary Hua, ON, 6.0, 1794, 1605
-1605 was calculated by using the pre-tournament opponents’ ratings of 1436, 1563, 1600, 1610, 1649, 1663, 1716, and
+1605 was calculated by using the pre-tournament opponents ratings of 1436, 1563, 1600, 1610, 1649, 1663, 1716, and
 dividing by the total number of games played.
 If you have questions about the meaning of the data or the results, please post them on the discussion forum. Data
-science, like chess, is a game of back and forth…
+science, like chess, is a game of back and forth
 The chess rating system (invented by a Minnesota statistician named Arpad Elo) has been used in many other contexts,
 including assessing relative strength of employment candidates by human resource departments.
 You may substitute another text file (or set of text files, or data scraped from web pages) of similar or greater
@@ -29,114 +31,116 @@ an R markdown file (and published to rpubs.com); with your data accessible for t
 
 
 #Step 1
-I downloaded the chess .txt file from the class link provided and uploaded it into my DATA 607 Project 1 repository on github. I then uploaded the file into R from Github and performed the below data manipulations using regular expressions.
-Follow this link to view the original file <https://raw.githubusercontent.com/igukusamuel/DATA-607-Project-1/master/tournamentinfo.txt>
+Download the chess .txt file from the class link provided (or from any other source per the instruction above) and uploaded it into a repository on github (in my case <https://raw.githubusercontent.com/igukusamuel/DATA-607-Project-1/master/tournamentinfo.txt>. Use RCurl to load the txt data into R from Github or other link of your choosing and perform the below data manipulations using regular expressions.
 
 ```{r}
 library(RCurl)
-chess <- getURL("https://raw.githubusercontent.com/nabilahossain/Class-IS607/master/Project%201/tournamentinfo.txt")
+chess_T <- getURL("https://raw.githubusercontent.com/nabilahossain/Class-IS607/master/Project%201/tournamentinfo.txt")
 #chess
 ```
 
 #Step 2
-I used regular expressions to pull the (a) player's name and (b) the state.
+Use regular expressions to pull the (a) player's name and (b) the state. Load the stingr package and use the str_extract_all and the str_replace_all functions to extract and to format/clean the data from the .txt file
 
 ```{r}
 library(stringr)
-name <- unlist(str_extract_all(chess, "\\| [[:upper:]- ]{4,} \\|"))
+name <- unlist(str_extract_all(chess_T, "\\| [[:upper:]- ]{4,} \\|"))
 name <- str_replace_all(name, pattern = "(\\| )|([[:space:]]{1,}\\|)", replacement = "")
 head(name[25:30])
-state <- unlist(str_extract_all(chess, "\\|[[:space:]]{1,}[[A-Z]]{2} \\|"))
+state <- unlist(str_extract_all(chess_T, "\\|[[:space:]]{1,}[[A-Z]]{2} \\|"))
 state <- str_replace_all(state, pattern = "(\\|[[:space:]]{1,})|([[:space:]]{1,}\\|)", replacement = "")
 head(state, 10)
 ```
 
 #Step 3
-used regular expressions to extract (a) player's points and (b) pre-rating.
+Use regular expressions and the stingr functions mentioned in step 2 to extract (a) player's points and (b) pre-rating.
 
 ```{r}
-total_points <- unlist(str_extract_all(chess, "\\|[[:digit:].[:digit:]]{3}[[:space:]]{1,}\\|"))
+total_points <- unlist(str_extract_all(chess_T, "\\|[[:digit:].[:digit:]]{3}[[:space:]]{1,}\\|"))
 total_points <- str_replace_all(total_points, pattern = "(\\|)|([[:space:]]{1,}\\|)", replacement = "")
 head(total_points, 10)
-pre_rating <- unlist(str_extract_all(chess, "[:] [[:alnum:] ]{2,9}\\-\\>"))
+pre_rating <- unlist(str_extract_all(chess_T, "[:] [[:alnum:] ]{2,9}\\-\\>"))
 pre_rating <- str_replace_all(pre_rating, pattern = "(\\: )|(\\s{1,}\\-\\>)|([O-Q]\\d{1,2})|(\\-\\>)", replacement = "")
 pre_rating <- as.numeric(pre_rating)
-head(pre_rating, 10)
+head(pre_rating, 15)
 ```
 
 #Step 4
-We then create a table with (a) player's number, (b) name, (c) state, (d) total points and (e) pre-rating as the headers
+Extract, using same functions as above, each players number, needed later to join/combine tables and then create a table with (a) player's number, (b) name, (c) state, (d) total points and (e) pre-rating as the headers
 
 ```{r}
-player_num <- unlist(str_extract_all(chess, "\\d{1,2}\\s\\|"))
+player_num <- unlist(str_extract_all(chess_T, "\\d{1,2}\\s\\|"))
 player_num <- str_replace_all(player_num, pattern = "(\\s\\|)", replacement = "")
 player_num <- as.numeric(player_num)
-table1 <- data.frame(player_num = player_num, name = name, state = state, total_pts = total_points, pre_rating = pre_rating)
-head(table1)
+table_1 <- data.frame(player_num = player_num, name = name, state = state, total_pts = total_points, pre_rating = pre_rating)
+head(table_1)
 ```
 
 #Step 5
-Extracting the first row from the txt file and creating a table named rounds
+Extracting the first row from the txt file and creating a table named rounds with 10 columns.
+Here only extract the information found in the first line of each player and save it in the table of rounds.
 
 ```{r}
-r1 <- unlist(str_extract_all(chess, "\\d{1,2}\\s\\|(.+?)\\|[[:upper:]]{1}\\s{1,4}[[:digit:]]{0,3}\\|\n"))
-r1 <- str_replace_all(r1, pattern = "(\\|[[:upper:]]{1} )", replacement = "\\|")
-head(r1, 10)
-r1 <- str_replace_all(r1, pattern = "([[:space:]]{2})|(\\|\n)", replacement = "")
-rounds <- data.frame(str_split_fixed(r1, "\\|", 10))
+r_1 <- unlist(str_extract_all(chess_T, "\\d{1,2}\\s\\|(.+?)\\|[[:upper:]]{1}\\s{1,4}[[:digit:]]{0,3}\\|\n"))
+r_1 <- str_replace_all(r_1, pattern = "(\\|[[:upper:]]{1} )", replacement = "\\|")
+head(r_1, 10)
+r_1 <- str_replace_all(r_1, pattern = "([[:space:]]{2})|(\\|\n)", replacement = "")
+rounds <- data.frame(str_split_fixed(r_1, "\\|", 10))
 names(rounds) <- c("num", "name", "total_pts", "round1", "round2", "round3", "round4", "round5", "round6", "round7")
 tail(rounds, 4)
 ```
 
 #Step 6
+Install package reshape2 to combine players opponents information from the 7 columns into 1 and use the subset function to eliminate missing information.
 combine all the seven rounds of information extracted in table rounds in step 5 and create a second table named table2.
 
 ```{r}
 library(reshape2)
-r3 <- data.frame(rounds[c(1, 4:10)])
-r3$num <- str_replace_all(r3$num, pattern = "\\s{1,}(\\d{1,2})", replacement = "\\1")
-r4 <- melt(r3,id.vars="num", variable.name = "rounds", value.name = "opponent_number" )
-tail(r4)
-table2 <- subset(r4, opponent_number != " ")
-table2$num <- as.numeric(table2$num)
-tail(table2)
+r_3 <- data.frame(rounds[c(1, 4:10)])
+r_3$num <- str_replace_all(r_3$num, pattern = "\\s{1,}(\\d{1,2})", replacement = "\\1")
+r_4 <- melt(r_3,id.vars="num", variable.name = "rounds", value.name = "opponent_number" )
+tail(r_4)
+table_2 <- subset(r_4, opponent_number != " ")
+table_2$num <- as.numeric(table_2$num)
+tail(table_2)
 ```
 
 #Step 7
-combine table 1 and table 2 to get the opponents pre-ratings and name it table 3
+install package sqldf to join table 1 and table 2 to get the opponents pre-ratings and name set this data into table 3.
 
 ```{r}
 library(sqldf)
-table3 <- sqldf("select t2.num as 'player_num', t1.name as 'opponent_name', t2.rounds, t2.opponent_number, t1.pre_rating as 'opponent_pre_rating'   from table2 t2
-        left join table1 t1
-         on t2.opponent_number =  t1.player_num
-        order by t2.num asc")
-head(table3)
+table_3 <- sqldf("select t_2.num as 'player_num', t_1.name as 'opponent_name', t_2.rounds, t_2.opponent_number, t_1.pre_rating as 'opponent_pre_rating'   from table_2 t_2
+        left join table_1 t_1
+         on t_2.opponent_number =  t_1.player_num
+        order by t_2.num asc")
+head(table_3)
 ```
 
 #Step 8
-Aggregate the opponents pre-ratings into table 4
+use stats package and the aggregate function to find each players average pre-rating and set it as table 4. Use the subset fuction to acomplish this.
 
 ```{r}
 library(stats)
-table4 <- aggregate(opponent_pre_rating ~ player_num, data = table3, FUN = 'mean')
-head(table4)
+table_4 <- aggregate(opponent_pre_rating ~ player_num, data = table_3, FUN = 'mean')
+head(table_4)
 ```
 
 #Step 9
-Join table 1 and table 4 to obtain a table of the required information and in the reqired format.
+Using the sqldf package join table 1 and table 4 to obtain a table of the required information and in the reqired format. use the format fuction to round off the decimals to your units of choice.
 
 
 ```{r}
-Chess_Tournament <- sqldf("select t1.name as 'Player_Name', t1.state as 'Player_State', t1.total_pts as 'Total_Points', t1.pre_rating as 'Player_Pre-Rating', t4.opponent_pre_rating as 'Opponents_Average_Pre_Rating'
-      from table1 t1 left join table4 t4
-         on t4.player_num =  t1.player_num")
+Chess_Tournament <- sqldf("select t_1.name as 'Player_Name', t_1.state as 'Player_State', t_1.total_pts as 'Total_Points', t_1.pre_rating as 'Player_Pre-Rating', t_4.opponent_pre_rating as 'Opponents_Average_Pre_Rating'
+      from table_1 t_1 left join table_4 t_4
+         on t_4.player_num =  t_1.player_num")
 Chess_Tournament$Opponents_Average_Pre_Rating <- format(round(Chess_Tournament$Opponents_Average_Pre_Rating, 1), nsmall = 1)
-head(Chess_Tournament, 30)
+head(Chess_Tournament)
 ```
 
 #Step 10
-Finally save a .csv file into local drive or into github repository.
+Finally save a .csv file into local drive and upload into github repository.
+See my uploaded file under <https://github.com/igukusamuel/DATA-607-Project-1/blob/master/DATA_607_Project_1.csv>
 
 ```{r}
 write.csv(Chess_Tournament, file = "C:/Users/iguku/Google Drive/R and SQL/DATA 607 Project 1/DATA_607_Project_1.csv")
